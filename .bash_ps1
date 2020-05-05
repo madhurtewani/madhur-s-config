@@ -2,6 +2,24 @@
 # (this is recalculated every time the prompt is shown in function prompt_command):
 fill="--- "
 
+BLACK='\033[0;30m'
+D_GRAY='\033[1;30m'
+RED='\033[0;31m'
+L_RED='\033[1;31m'
+GREEN='\033[0;32m'
+L_GREEN='\033[1;32m'
+ORANGE='\033[0;33m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+L_BLUE='\033[1;34m'
+PURPLE='\033[0;35m'
+L_PURPLE='\033[1;35m'
+CYAN='\033[0;36m'
+L_CYAN='\033[1;36m'
+L_GRAY='\033[0;37m'
+WHITE='\033[1;37m'
+
+
 reset_style='\[\033[00m\]'
 if [ -z "$VIM" ];
 	then status_style=$reset_style'\[\033[0;90m\]' # gray color; use 0;37m for lighter color
@@ -9,6 +27,8 @@ if [ -z "$VIM" ];
 fi
 prompt_style=$reset_style
 command_style=$reset_style'\[\033[1;29m\]' # bold black
+NC='\033[00m'
+
 # Prompt variable:
 
 OLD_PS1="$PS1"
@@ -48,7 +68,7 @@ function parse_git_branch() {
 	if [ ! "${BRANCH}" == "" ]
 	then
 		STAT=`parse_git_dirty`
-		echo -e "(${BRANCH}${STAT})\n \b"
+		echo -e "  ${L_GRAY}[${NC} ${GREEN}${BRANCH}${NC}${STAT} ${L_GRAY}]${NC}\n \b"
 	else
 		echo ""
 	fi
@@ -70,16 +90,17 @@ function parse_git_dirty {
 			esac
 		done
 		if [ $behind -eq 0 -a $ahead -eq 0 ]; then
-			bits="${bits} ="
+			lr="${L_CYAN}=${NC}"
 		elif [ $behind -gt 0 -a $ahead -gt 0 ]; then
-			bits="${bits} <${behind} >${ahead}"
+			lr="${L_RED}<${behind} >${ahead}${NC}"
 		elif [ $behind -gt 0 -a $ahead -eq 0 ]; then
-			bits="${bits} <${behind}"
+			lr="${YELLOW}<${behind}${NC}"
 		elif [ $behind -eq 0 -a $ahead -gt 0 ]; then
-			bits="${bits} >${ahead}"
+			lr="${L_GREEN}>${ahead}${NC}"
 		else
-			bits="${bits} **"
+			lr="${RED}**${NC}"
 		fi
+		bits="${bits} ${lr}"
 	fi
 
 	status=`git status 2>&1 | tee`
@@ -94,24 +115,33 @@ function parse_git_dirty {
 	newfile=$(($newfile+$untracked+$bothadded))
 	deleted=`echo -n "${status}" 2> /dev/null | grep "deleted:" | wc -l`
 
-	bits="${bits} +${added}"
-	bits="${bits} #${staged}"
+	if [ "${added}" != "0" ]; then
+		bits="${bits} ${L_GREEN}+${added}${NC}"
+	else
+		bits="${bits} +${added}"
+	fi
+	if [ "${staged}" != "0" ]; then
+		bits="${bits} ${YELLOW}#${staged}${NC}"
+	else
+		bits="${bits} #${staged}"
+	fi
 	if [ "${untracked}" != "0" ]; then
-		bits="${bits} ?${untracked}"
+		bits="${bits} ${L_RED}?${untracked}${NC}"
 	fi
 
 	if [ "${modified}" != "0" ]; then
-		bits="${bits} ${modified}M"
+		bits="${bits} ${L_CYAN}${modified}M${NC}"
 	fi
 	if [ "${renamed}" != "0" ]; then
-		bits="${bits} ${renamed}R"
+		bits="${bits} ${L_PURPLE}${renamed}R${NC}"
 	fi
 	if [ "${newfile}" != "0" ]; then
-		bits="${bits} ${newfile}N"
+		bits="${bits} ${YELLOW}${newfile}N${NC}"
 	fi
 	if [ "${deleted}" != "0" ]; then
-		bits="${bits} ${deleted}D"
+		bits="${bits} ${RED}${deleted}D${NC}"
 	fi
+
 	if [ ! "${bits}" == "" ]; then
 		echo "${bits}"
 	else
