@@ -1,0 +1,10 @@
+# To use these aliases include this file in `.gitconfig` as shown below.
+# [include]
+#       path = /path/to/this/file
+#
+[alias]
+        onelog = log --pretty=format:'%C(auto)%h%d %C(cyan)%an%Creset %Cgreen%ad%Creset %s' --date=format:'%e %b %y %I:%M %P'
+        fpush = push -f
+        amend = commit --amend --no-edit
+        iadd = add -i
+        irebase = "!f(){ git rebase -i HEAD~${1}; };f"
